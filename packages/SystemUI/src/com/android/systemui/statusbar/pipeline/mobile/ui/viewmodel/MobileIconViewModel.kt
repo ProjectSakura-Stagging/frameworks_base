@@ -204,11 +204,7 @@ private class CarrierBasedSatelliteViewModelImpl(
 
     /** These fields are not used for satellite icons currently */
     override val roaming: Flow<Boolean> = flowOf(false)
-<<<<<<< HEAD
     override val isRoamingVisible: Flow<Boolean> = flowOf(false)
-=======
-    override val networkTypeIcon: Flow<Icon.Resource?> = flowOf(null)
->>>>>>> 44866ee33390 (SystemUI: Forward port 'HD & wifi calling statusbar icons')
     override val networkTypeBackground: StateFlow<Icon.Resource?> = MutableStateFlow(null)
     override val activityInVisible: Flow<Boolean> = flowOf(false)
     override val activityOutVisible: Flow<Boolean> = flowOf(false)

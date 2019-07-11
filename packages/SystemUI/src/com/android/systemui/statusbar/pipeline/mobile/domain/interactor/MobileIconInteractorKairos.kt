@@ -357,29 +357,18 @@ class MobileIconInteractorKairosImpl(
     // See b/346904529 for details
     private val satelliteShownLevel: State<Int> = connectionRepository.satelliteLevel
 
-<<<<<<< HEAD
-    private val cellularIcon: State<SignalIconModel.CellularTypeIconModel.Cellular> =
-        combine(
-            cellularShownLevel,
-            numberOfLevels,
-            showExclamationMarkForCellular,
-            carrierNetworkChangeActive,
-        ) { cellularShownLevel, numberOfLevels, showExclamationMark, carrierNetworkChange ->
-            SignalIconModel.CellularTypeIconModel.Cellular(
-=======
     private val showRoaming: State<Boolean> =
         combine(isRoaming, isRoamingForceHidden) { roaming, hidden -> roaming && !hidden }
 
-    private val cellularIcon: State<SignalIconModel.Cellular> =
+    private val cellularIcon: State<SignalIconModel.CellularTypeIconModel.Cellular> =
         combine(
             combine(
->>>>>>> 44866ee33390 (SystemUI: Forward port 'HD & wifi calling statusbar icons')
                 cellularShownLevel,
                 numberOfLevels,
-                showExclamationMark,
+                showExclamationMarkForCellular,
                 carrierNetworkChangeActive,
             ) { level, numLevels, showEx, carrierChange ->
-                SignalIconModel.Cellular(
+                SignalIconModel.CellularTypeIconModel.Cellular(
                     level = level,
                     numberOfLevels = numLevels,
                     showExclamationMark = showEx,

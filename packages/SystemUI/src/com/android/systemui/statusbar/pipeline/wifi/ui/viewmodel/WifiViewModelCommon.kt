@@ -37,16 +37,4 @@ interface WifiViewModelCommon {
 
     /** True if the activity container view should be visible. */
     val isActivityContainerVisible: Flow<Boolean>
-<<<<<<< HEAD
-=======
-
-    /** True if the airplane spacer view should be visible. */
-    val isAirplaneSpacerVisible: Flow<Boolean>
-
-    /** True if the spacer between the wifi icon and the RAT icon should be visible. */
-    val isSignalSpacerVisible: Flow<Boolean>
-
-    /** The VoWifi icon that should be displayed. */
-    val voWifiIcon: Flow<VoWifiIcon>
->>>>>>> 44866ee33390 (SystemUI: Forward port 'HD & wifi calling statusbar icons')
 }

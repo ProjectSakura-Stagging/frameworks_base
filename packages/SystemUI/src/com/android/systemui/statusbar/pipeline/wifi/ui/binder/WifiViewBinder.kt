@@ -31,12 +31,6 @@ import com.android.systemui.statusbar.StatusBarIconView
 import com.android.systemui.statusbar.StatusBarIconView.STATE_HIDDEN
 import com.android.systemui.statusbar.pipeline.shared.ui.binder.ModernStatusBarViewBinding
 import com.android.systemui.statusbar.pipeline.shared.ui.binder.ModernStatusBarViewVisibilityHelper
-<<<<<<< HEAD
-=======
-import com.android.systemui.statusbar.pipeline.shared.ui.binder.StatusBarViewBinderConstants.ALPHA_ACTIVE
-import com.android.systemui.statusbar.pipeline.shared.ui.binder.StatusBarViewBinderConstants.ALPHA_INACTIVE
-import com.android.systemui.statusbar.pipeline.wifi.ui.model.VoWifiIcon
->>>>>>> 44866ee33390 (SystemUI: Forward port 'HD & wifi calling statusbar icons')
 import com.android.systemui.statusbar.pipeline.wifi.ui.model.WifiIcon
 import com.android.systemui.statusbar.pipeline.wifi.ui.viewmodel.LocationBasedWifiViewModel
 import kotlinx.coroutines.InternalCoroutinesApi
@@ -64,12 +58,6 @@ object WifiViewBinder {
         val activityInView = view.requireViewById<ImageView>(R.id.wifi_in)
         val activityOutView = view.requireViewById<ImageView>(R.id.wifi_out)
         val activityContainerView = view.requireViewById<View>(R.id.inout_container)
-<<<<<<< HEAD
-=======
-        val airplaneSpacer = view.requireViewById<View>(R.id.wifi_airplane_spacer)
-        val signalSpacer = view.requireViewById<View>(R.id.wifi_signal_spacer)
-        val voWifiView = view.requireViewById<ImageView>(R.id.vowifi)
->>>>>>> 44866ee33390 (SystemUI: Forward port 'HD & wifi calling statusbar icons')
 
         view.isVisible = true
         iconView.isVisible = true
@@ -144,33 +132,6 @@ object WifiViewBinder {
                     }
                 }
 
-<<<<<<< HEAD
-=======
-                if (!NewStatusBarIcons.isEnabled) {
-                    launch {
-                        viewModel.isAirplaneSpacerVisible.distinctUntilChanged().collect { visible
-                            ->
-                            airplaneSpacer.isVisible = visible
-                        }
-                    }
-
-                    launch {
-                        viewModel.isSignalSpacerVisible.distinctUntilChanged().collect { visible ->
-                            signalSpacer.isVisible = visible
-                        }
-                    }
-                }
-
-                launch {
-                    viewModel.voWifiIcon.distinctUntilChanged().collect { voWifiIcon ->
-                        voWifiView.isVisible = voWifiIcon is VoWifiIcon.Visible
-                        if (voWifiIcon is VoWifiIcon.Visible) {
-                            IconViewBinder.bind(voWifiIcon.icon, voWifiView)
-                        }
-                    }
-                }
-
->>>>>>> 44866ee33390 (SystemUI: Forward port 'HD & wifi calling statusbar icons')
                 try {
                     awaitCancellation()
                 } finally {

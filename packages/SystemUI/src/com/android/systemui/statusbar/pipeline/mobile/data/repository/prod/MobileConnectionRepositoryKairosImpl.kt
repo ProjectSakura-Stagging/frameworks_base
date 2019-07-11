@@ -43,12 +43,6 @@ import android.telephony.TelephonyManager.NETWORK_TYPE_UNKNOWN
 import android.telephony.TelephonyManager.UNKNOWN_CARRIER_ID
 import android.telephony.satellite.NtnSignalStrength
 import com.android.settingslib.Utils
-<<<<<<< HEAD
-=======
-import com.android.systemui.KairosBuilder
-import com.android.systemui.statusbar.pipeline.ims.data.model.ImsStateModel
-import com.android.systemui.statusbar.pipeline.ims.data.repository.ImsRepository
->>>>>>> 44866ee33390 (SystemUI: Forward port 'HD & wifi calling statusbar icons')
 import com.android.systemui.broadcast.BroadcastDispatcher
 import com.android.systemui.dagger.qualifiers.Background
 import com.android.systemui.flags.FeatureFlagsClassic

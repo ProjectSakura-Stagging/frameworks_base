@@ -35,7 +35,6 @@ sealed interface SignalIconModel : Diffable<SignalIconModel> {
 
     fun logPartial(prevVal: SignalIconModel, row: TableRowLogger)
 
-<<<<<<< HEAD
     sealed interface CellularTypeIconModel : SignalIconModel {
         val numberOfLevels: Int
         val showExclamationMark: Boolean
@@ -49,6 +48,7 @@ sealed interface SignalIconModel : Diffable<SignalIconModel> {
             override val numberOfLevels: Int,
             override val showExclamationMark: Boolean,
             val carrierNetworkChange: Boolean,
+            val showRoaming: Boolean = false,
         ) : CellularTypeIconModel {
             override fun logPartial(prevVal: SignalIconModel, row: TableRowLogger) {
                 if (prevVal !is Cellular) {
@@ -66,54 +66,10 @@ sealed interface SignalIconModel : Diffable<SignalIconModel> {
                     if (prevVal.carrierNetworkChange != carrierNetworkChange) {
                         row.logChange(COL_CARRIER_NETWORK_CHANGE, carrierNetworkChange)
                     }
+                    if (prevVal.showRoaming != showRoaming) {
+                        row.logChange(COL_SHOW_ROAMING, showRoaming)
+                    }
                 }
-=======
-    /** A model that will be consumed by [SignalDrawable] to show the mobile triangle icon. */
-    data class Cellular(
-        override val level: Int,
-        val numberOfLevels: Int,
-        val showExclamationMark: Boolean,
-        val carrierNetworkChange: Boolean,
-        val showRoaming: Boolean,
-    ) : SignalIconModel {
-        override fun logPartial(prevVal: SignalIconModel, row: TableRowLogger) {
-            if (prevVal !is Cellular) {
-                logFull(row)
-            } else {
-                if (prevVal.level != level) {
-                    row.logChange(COL_LEVEL, level)
-                }
-                if (prevVal.numberOfLevels != numberOfLevels) {
-                    row.logChange(COL_NUM_LEVELS, numberOfLevels)
-                }
-                if (prevVal.showExclamationMark != showExclamationMark) {
-                    row.logChange(COL_SHOW_EXCLAMATION, showExclamationMark)
-                }
-                if (prevVal.carrierNetworkChange != carrierNetworkChange) {
-                    row.logChange(COL_CARRIER_NETWORK_CHANGE, carrierNetworkChange)
-                }
-                if (prevVal.showRoaming != showRoaming) {
-                    row.logChange(COL_SHOW_ROAMING, showRoaming)
-                }
-            }
-        }
-
-        override fun logFully(row: TableRowLogger) {
-            row.logChange(COL_TYPE, "c")
-            row.logChange(COL_LEVEL, level)
-            row.logChange(COL_NUM_LEVELS, numberOfLevels)
-            row.logChange(COL_SHOW_EXCLAMATION, showExclamationMark)
-            row.logChange(COL_CARRIER_NETWORK_CHANGE, carrierNetworkChange)
-            row.logChange(COL_SHOW_ROAMING, showRoaming)
-        }
-
-        /** Convert this model to an [Int] consumable by [SignalDrawable]. */
-        fun toSignalDrawableState(): Int =
-            if (carrierNetworkChange) {
-                SignalDrawable.getCarrierChangeState(numberOfLevels)
-            } else {
-                SignalDrawable.getState(level, numberOfLevels, showExclamationMark, showRoaming)
->>>>>>> 44866ee33390 (SystemUI: Forward port 'HD & wifi calling statusbar icons')
             }
 
             override fun logFully(row: TableRowLogger) {
@@ -122,6 +78,7 @@ sealed interface SignalIconModel : Diffable<SignalIconModel> {
                 row.logChange(COL_NUM_LEVELS, numberOfLevels)
                 row.logChange(COL_SHOW_EXCLAMATION, showExclamationMark)
                 row.logChange(COL_CARRIER_NETWORK_CHANGE, carrierNetworkChange)
+                row.logChange(COL_SHOW_ROAMING, showRoaming)
             }
 
             /** Convert this model to an [Int] consumable by [SignalDrawable]. */
@@ -129,7 +86,7 @@ sealed interface SignalIconModel : Diffable<SignalIconModel> {
                 if (carrierNetworkChange) {
                     SignalDrawable.getCarrierChangeState(numberOfLevels)
                 } else {
-                    SignalDrawable.getState(level, numberOfLevels, showExclamationMark)
+                    SignalDrawable.getState(level, numberOfLevels, showExclamationMark, showRoaming)
                 }
         }
 

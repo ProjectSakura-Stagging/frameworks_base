@@ -16,7 +16,8 @@
 
 package com.android.systemui.privacy
 
-import android.location.flags.Flags.locationIndicatorsEnabled
+import android.os.UserHandle
+import android.provider.Settings
 import com.android.internal.annotations.VisibleForTesting
 import com.android.systemui.Dumpable
 import com.android.systemui.appops.AppOpsController
@@ -27,6 +28,7 @@ import com.android.systemui.dump.DumpManager
 import com.android.systemui.privacy.logging.PrivacyLogger
 import com.android.systemui.util.asIndenting
 import com.android.systemui.util.concurrency.DelayableExecutor
+import com.android.systemui.util.settings.SecureSettings
 import com.android.systemui.util.time.SystemClock
 import com.android.systemui.util.withIncreasedIndent
 import java.io.PrintWriter
@@ -74,7 +76,7 @@ constructor(
         get() = privacyConfig.locationAvailable
 
     val allIndicatorsAvailable
-        get() = micCameraAvailable && locationAvailable && privacyConfig.mediaProjectionAvailable
+        get() = micCameraAvailable && locationAvailable && mediaProjectionAvailable
 
     private val notifyChanges = Runnable {
         val list = privacyList
@@ -189,7 +191,7 @@ constructor(
      */
     private fun processNewList(list: List<PrivacyItem>): List<PrivacyItem> {
         val allPrivacyItemsAreLocation =
-            locationIndicatorsEnabled() &&
+            locationAvailable &&
                 PrivacyConfig.Companion.privacyItemsAreLocationOnly((list + privacyList).distinct())
         val timeToHold =
             if (allPrivacyItemsAreLocation) {

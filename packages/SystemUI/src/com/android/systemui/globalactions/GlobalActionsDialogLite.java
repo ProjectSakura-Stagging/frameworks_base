@@ -303,6 +303,7 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
     private final boolean mHasVibrator;
     private final boolean mShowSilentToggle;
     private final boolean mTranslucentPowerMenu;
+    private final BlurUtils mBlurUtils;
     @NonNull
     private final EmergencyAffordanceManager mEmergencyAffordanceManager;
     @NonNull
@@ -469,7 +470,8 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
             @NonNull BroadcastSender broadcastSender,
             @ShadeDisplayAware @NonNull EmergencyAffordanceManager emergencyAffordanceManager,
             @ShadeDisplayAware @NonNull ScreenshotHelper screenshotHelper,
-            @NonNull ActionsDialogLiteDelegate.Factory delegateFactory) {
+            @NonNull ActionsDialogLiteDelegate.Factory delegateFactory,
+            @NonNull BlurUtils blurUtils) {
         mContext = context;
         mWindowManagerFuncs = windowManagerFuncs;
         mAudioManager = audioManager;
@@ -508,6 +510,7 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
         mTranslucentPowerMenu =
                 resources.getBoolean(
                         com.android.systemui.res.R.bool.config_translucentStandalonePowerMenu);
+        mBlurUtils = blurUtils;
 
         mHandler = new Handler(mMainHandler.getLooper()) {
             public void handleMessage(@NonNull Message msg) {
@@ -3021,6 +3024,8 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
                     }
                 };
 
+        private final BlurUtils mBlurUtils;
+
         @AssistedInject
         ActionsDialogLiteDelegate(
                 @Assisted @NonNull Context context,
@@ -3045,7 +3050,8 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
                 @NonNull AccessibilityManager accessibilityManager,
                 @NonNull DialogTransitionAnimator dialogTransitionAnimator,
                 @NonNull SystemUIDialog.Factory systemUIDialogFactory,
-                @NonNull DeviceEntryInteractor deviceEntryInteractor) {
+                @NonNull DeviceEntryInteractor deviceEntryInteractor,
+                @NonNull BlurUtils blurUtils) {
             mContext = context;
             mAdapter = adapter;
             mOverflowAdapter = overflowAdapter;
@@ -3070,6 +3076,7 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
             mSystemUIDialogFactory = systemUIDialogFactory;
             mGestureDetector = new GestureDetector(context, mGestureListener);
             mDeviceEntryInteractor = deviceEntryInteractor;
+            mBlurUtils = blurUtils;
             mOnBackInvokedCallback = () -> {
                 logOnBackInvocation();
                 if (mAdapter.isShowingRestartOptions()) {
@@ -3154,7 +3161,8 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
         }
 
         public void showPowerOptionsMenu() {
-            mPowerOptionsDialog = GlobalActionsPowerDialog.create(mContext, mPowerOptionsAdapter);
+            mPowerOptionsDialog = GlobalActionsPowerDialog.create(mContext,
+                    mPowerOptionsAdapter, mBlurUtils);
             mPowerOptionsDialog.show();
         }
 
@@ -3164,7 +3172,8 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
         }
 
         public void showUsersMenu() {
-            mUsersDialog = GlobalActionsPowerDialog.create(mContext, mUsersAdapter);
+            mUsersDialog = GlobalActionsPowerDialog.create(mContext,
+                    mUsersAdapter, mBlurUtils);
             mUsersDialog.show();
         }
 
@@ -3275,6 +3284,19 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
 
         @Override
         public void onStart(@NonNull SystemUIDialog dialog) {
+            Window window = dialog.getWindow();
+            if (window != null) {
+                window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+                if (mBlurUtils.supportsBlursOnWindows()) {
+                    window.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
+                    window.getAttributes().setBlurBehindRadius(dialog.getContext().getResources()
+                            .getDimensionPixelSize(
+                                    com.android.systemui.res.R.dimen.max_window_blur_radius));
+                    window.setDimAmount(0.54f);
+                } else {
+                    window.setDimAmount(0.88f);
+                }
+            }
             mGlobalActionsLayout.updateList();
             mLightBarController.setGlobalActionsVisible(true);
 

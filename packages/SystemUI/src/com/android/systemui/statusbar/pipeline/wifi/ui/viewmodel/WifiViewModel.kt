@@ -27,14 +27,21 @@ import com.android.systemui.statusbar.pipeline.shared.data.model.DataActivityMod
 import com.android.systemui.statusbar.pipeline.wifi.domain.interactor.WifiInteractor
 import com.android.systemui.statusbar.pipeline.wifi.shared.WifiConstants
 import com.android.systemui.statusbar.pipeline.wifi.shared.model.WifiNetworkModel
+import com.android.systemui.statusbar.pipeline.wifi.ui.model.VoWifiIcon
 import com.android.systemui.statusbar.pipeline.wifi.ui.model.WifiIcon
+<<<<<<< HEAD
 import com.android.systemui.statusbar.systemstatusicons.SystemStatusIconsInCompose
+=======
+import com.android.systemui.statusbar.pipeline.wifi.ui.model.icon
+import java.util.function.Supplier
+>>>>>>> 44866ee33390 (SystemUI: Forward port 'HD & wifi calling statusbar icons')
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -118,4 +125,27 @@ constructor(
                 activity.map { it != null && (it.hasActivityIn || it.hasActivityOut) }
             }
             .stateIn(scope, SharingStarted.WhileSubscribed(), false)
+<<<<<<< HEAD
+=======
+
+    // TODO(b/238425913): It isn't ideal for the wifi icon to need to know about whether the
+    //  airplane icon is visible. Instead, we should have a parent StatusBarSystemIconsViewModel
+    //  that appropriately knows about both icons and sets the padding appropriately.
+    override val isAirplaneSpacerVisible: Flow<Boolean> =
+        airplaneModeViewModel.isAirplaneModeIconVisible
+
+    override val isSignalSpacerVisible: Flow<Boolean> = shouldShowSignalSpacerProvider.get()
+
+    override val voWifiIcon: Flow<VoWifiIcon> =
+        combine(
+                interactor.voWifiState,
+                interactor.isVoWifiForceHidden
+            ) { state, isHidden ->
+                // If it's force hidden, just hide.
+                // Otherwise follow VoWifi state
+                if (isHidden) VoWifiIcon.Hidden else state.icon
+            }
+            .distinctUntilChanged()
+            .stateIn(scope, SharingStarted.WhileSubscribed(), VoWifiIcon.Hidden)
+>>>>>>> 44866ee33390 (SystemUI: Forward port 'HD & wifi calling statusbar icons')
 }

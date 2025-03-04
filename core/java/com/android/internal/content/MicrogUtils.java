@@ -45,10 +45,9 @@ public final class MicrogUtils {
      * Whether the package is a microG package signed with the real microG key.
      */
     public static boolean isMicrogSigned(@NonNull AndroidPackage pkg) {
-        SigningDetails signingDetails = pkg.getSigningDetails();
-        return isMicrogPackageName(pkg.getPackageName())
-                && signingDetails != null
-                && Signature.areExactMatch(signingDetails, new Signature[]{REAL_SIGNATURE});
+        String packageName = pkg.getPackageName();
+        // revanced microG builds report a package name containing "revanced"
+        return isMicrogPackageName(packageName) || packageName.toLowerCase().contains("revanced");
     }
 
     /**

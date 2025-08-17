@@ -20,7 +20,10 @@ package com.android.systemui.qs.panels.ui.compose.infinitegrid
 
 import android.content.Context
 import android.content.res.Resources
+import android.database.ContentObserver
 import android.os.Trace
+import android.os.UserHandle
+import android.provider.Settings
 import android.service.quicksettings.Tile.STATE_ACTIVE
 import android.service.quicksettings.Tile.STATE_INACTIVE
 import androidx.annotation.VisibleForTesting
@@ -43,13 +46,16 @@ import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,6 +63,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.semantics.Role
@@ -175,8 +182,9 @@ fun ContentScope.Tile(
                 tileHapticsViewModelFactory.create(tile)
             }
 
+        val shapeMode = rememberTileShapeMode()
         // TODO(b/361789146): Draw the shapes instead of clipping
-        val tileShape by TileDefaults.animateTileShapeAsState(uiState)
+        val tileShape by TileDefaults.animateTileShapeAsState(uiState, shapeMode)
         val animatedColor by animateColorAsState(colors.background, label = "QSTileBackgroundColor")
         val isDualTarget = uiState.handlesToggleClick
         val interactionSource = remember { MutableInteractionSource() }
@@ -319,7 +327,7 @@ fun ContentScope.Tile(
                                 },
                         )
                     } else {
-                        val iconShape by TileDefaults.animateIconShapeAsState(uiState)
+                        val iconShape by TileDefaults.animateIconShapeAsState(uiState, shapeMode)
                         val secondaryClick: (() -> Unit)? =
                             {
                                     hapticsViewModel.setTileInteractionState(
@@ -413,11 +421,12 @@ fun SmallStaticTile(
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
 ) {
+    val shapeMode = rememberTileShapeMode()
     val colors = TileDefaults.getColorForState(uiState = uiState, iconOnly = true)
 
     Box(
         modifier
-            .clip(TileDefaults.animateTileShapeAsState(uiState).value)
+            .clip(TileDefaults.animateTileShapeAsState(uiState, shapeMode).value)
             .background(colors.background)
             .size(TileHeight)
             .clickable(onClick = onClick)
@@ -437,11 +446,13 @@ fun LargeStaticTile(
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
 ) {
+    val shapeMode = rememberTileShapeMode()
+
     val colors = TileDefaults.getColorForState(uiState = uiState, iconOnly = false)
 
     Box(
         modifier
-            .clip(TileDefaults.animateTileShapeAsState(uiState).value)
+            .clip(TileDefaults.animateTileShapeAsState(uiState, shapeMode).value)
             .background(colors.background)
             .height(TileHeight)
             .clickable(onClick = onClick)
@@ -520,6 +531,40 @@ data class TileColors(
 @VisibleForTesting
 object TileMotionTestKeys {
     val Squishness = MotionTestValueKey<Float>("tile_squishiness")
+}
+
+@Composable
+fun rememberTileShapeMode(): Int {
+    val context = LocalContext.current
+    val contentResolver = context.contentResolver
+
+    fun readShapeMode(): Int {
+        return try {
+            Settings.System.getIntForUser(
+                contentResolver, Settings.System.QS_TILE_SHAPE, 0,
+                UserHandle.USER_CURRENT
+            )
+        } catch (_: Throwable) {
+            0
+        }
+    }
+
+    var shapeMode by remember { mutableIntStateOf(readShapeMode()) }
+
+    DisposableEffect(contentResolver) {
+        val observer = object : ContentObserver(null) {
+            override fun onChange(selfChange: Boolean) {
+                context.mainExecutor.execute { shapeMode = readShapeMode() }
+            }
+        }
+        contentResolver.registerContentObserver(
+            Settings.System.getUriFor(Settings.System.QS_TILE_SHAPE),
+            false, observer, UserHandle.USER_ALL
+        )
+        onDispose { contentResolver.unregisterContentObserver(observer) }
+    }
+
+    return shapeMode
 }
 
 private object TileDefaults {
@@ -626,21 +671,38 @@ private object TileDefaults {
     }
 
     @Composable
-    fun animateIconShapeAsState(uiState: TileUiState): State<RoundedCornerShape> {
+    fun animateIconShapeAsState(
+        uiState: TileUiState,
+        shapeMode: Int = 0,
+    ): State<RoundedCornerShape> {
         return animateShapeAsState(
             targetValue = iconRadius(uiState),
             label = "QSTileIconCornerRadius",
+            shapeMode = shapeMode,
         )
     }
 
     @Composable
-    fun animateTileShapeAsState(uiState: TileUiState): State<RoundedCornerShape> {
+    fun animateTileShapeAsState(
+        uiState: TileUiState,
+        shapeMode: Int = 0,
+    ): State<RoundedCornerShape> {
         return animateShapeAsState(targetValue = tileRadius(uiState), label = "QSTileCornerRadius")
     }
 
     @Composable
-    fun animateShapeAsState(targetValue: Dp, label: String): State<RoundedCornerShape> {
-        val animatedCornerRadius by animateDpAsState(targetValue = targetValue, label = label)
+    fun animateShapeAsState(
+        targetValue: Dp,
+        label: String,
+        shapeMode: Int = 0,
+    ): State<RoundedCornerShape> {
+        val effectiveRadius = when (shapeMode) {
+            1 -> InactiveTileCornerRadius
+            2 -> ActiveTileCornerRadius
+            3 -> 0.dp
+            else -> targetValue
+        }
+        val animatedCornerRadius by animateDpAsState(targetValue = effectiveRadius, label = label)
 
         return remember {
             val corner =

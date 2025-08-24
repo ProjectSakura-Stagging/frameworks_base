@@ -151,6 +151,14 @@ fun BrightnessSlider(
 
     var hapticsEnabled by remember { mutableStateOf(readEnableHaptics(cr)) }
 
+    val shapeMode = rememberSliderShapeMode()
+    val trackCornerDp: Dp = when (shapeMode) {
+        1 -> 24.dp  /* Circle */
+        2 -> 12.dp  /* Rounded Square */
+        3 -> 0.dp /* Square */
+        else -> SliderTrackRoundedCorner
+    }
+
     var value by remember(gammaValue) { mutableIntStateOf(gammaValue) }
     val animatedValue by
         animateFloatAsState(targetValue = value.toFloat(), label = "BrightnessSliderAnimatedValue")
@@ -377,7 +385,7 @@ fun BrightnessSlider(
                                 )
                             }
                         },
-                trackCornerSize = SliderTrackRoundedCorner,
+                trackCornerSize = trackCornerDp,
                 trackInsideCornerSize = 2.dp,
                 drawStopIndicator = null,
                 thumbTrackGapSize = ThumbTrackGapSize,
@@ -406,6 +414,40 @@ fun BrightnessSlider(
             }
         }
     }
+}
+
+@Composable
+fun rememberSliderShapeMode(): Int {
+    val context = LocalContext.current
+    val contentResolver = context.contentResolver
+
+    fun readShapeMode(): Int {
+        return try {
+            Settings.System.getIntForUser(
+                contentResolver, Settings.System.QS_BRIGHTNESS_SLIDER_SHAPE, 0,
+                UserHandle.USER_CURRENT
+            )
+        } catch (_: Throwable) {
+            0
+        }
+    }
+
+    var shapeMode by remember { mutableIntStateOf(readShapeMode()) }
+
+    DisposableEffect(contentResolver) {
+        val observer = object : ContentObserver(null) {
+            override fun onChange(selfChange: Boolean) {
+                context.mainExecutor.execute { shapeMode = readShapeMode() }
+            }
+        }
+        contentResolver.registerContentObserver(
+            Settings.System.getUriFor(Settings.System.QS_BRIGHTNESS_SLIDER_SHAPE),
+            false, observer, UserHandle.USER_ALL
+        )
+        onDispose { contentResolver.unregisterContentObserver(observer) }
+    }
+
+    return shapeMode
 }
 
 private fun Modifier.sliderBackground(
@@ -476,6 +518,14 @@ private fun drawAutoBrightnessButton(
         HapticFeedbackConstants.TOGGLE_ON
     }
 
+    val shapeMode = rememberSliderShapeMode()
+    val autoIconShape = when (shapeMode) {
+        1 -> CircleShape
+        2 -> RoundedCornerShape(12.dp)
+        3 -> RoundedCornerShape(0.dp)
+        else -> CircleShape
+    }
+
     IconButton(
         onClick = {
             if (hapticsEnabled) {
@@ -485,7 +535,7 @@ private fun drawAutoBrightnessButton(
         },
         modifier = Modifier
             .size(52.dp)
-            .clip(CircleShape)
+            .clip(autoIconShape)
             .background(backgroundColor)
     ) {
         Icon(
@@ -525,6 +575,20 @@ fun BrightnessSliderContainer(
             viewModel.setIsDragging(false)
             enabled = false
         }
+    }
+
+    val shapeMode = rememberSliderShapeMode()
+    val trackCornerDp: Dp = when (shapeMode) {
+        1 -> 24.dp  /* Circle */
+        2 -> 12.dp  /* Rounded Square */
+        3 -> 0.dp /* Square */
+        else -> SliderTrackRoundedCorner
+    }
+    val bgCornerDp: Dp = when (shapeMode) {
+        1 -> 50.dp  /* Circle */
+        2 -> 24.dp  /* Rounded Square */
+        3 -> 0.dp /* Square */
+        else -> dimensions.backgroundRoundedCorner
     }
 
     // Use dragging instead of viewModel.showMirror so the color starts changing as soon as the
@@ -570,12 +634,12 @@ fun BrightnessSliderContainer(
             modifier =
                 Modifier.borderOnFocus(
                         color = MaterialTheme.colorScheme.secondary,
-                        cornerSize = CornerSize(SliderTrackRoundedCorner),
+                        cornerSize = CornerSize(trackCornerDp),
                     )
                     .then(if (viewModel.showMirror) Modifier.drawInOverlay() else Modifier)
                     .sliderBackground(
                         DpSize(dimensions.backgroundFrameWidth, dimensions.backgroundFrameHeight),
-                        dimensions.backgroundRoundedCorner,
+                        bgCornerDp,
                         containerColor,
                     )
                     .fillMaxWidth()

@@ -30,10 +30,12 @@ import androidx.annotation.VisibleForTesting
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Arrangement.spacedBy
@@ -696,6 +698,9 @@ private object TileDefaults {
         label: String,
         shapeMode: Int = 0,
     ): State<RoundedCornerShape> {
+        if (shapeMode == 4) {
+            return remember { mutableStateOf(RoundedCornerShape(50)) }
+        }
         val effectiveRadius = when (shapeMode) {
             1 -> InactiveTileCornerRadius
             2 -> ActiveTileCornerRadius

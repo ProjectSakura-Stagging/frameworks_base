@@ -122,6 +122,7 @@ fun InteractiveTileContainer(
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
     contentDescription: String? = null,
+    iconOnly: Boolean,
     content: @Composable BoxScope.() -> Unit = {},
 ) {
     val transition: Transition<Decoration> = updateTransition(tileState.decoration())
@@ -235,15 +236,21 @@ private fun Modifier.selectionBorder(
     return drawWithContent {
         drawContent()
 
-        // Draw the border on the inside of the tile
-        val borderWidth = selectionBorderWidth.toPx()
+        val borderWidthPx = selectionBorderWidth.toPx()
+        val alpha = selectionAlpha()
+
+        val topLeft = Offset(borderWidthPx / 2f, borderWidthPx / 2f)
+        val sz = Size(size.width - borderWidthPx, size.height - borderWidthPx)
+
         drawRoundRect(
-            SolidColor(selectionColor),
-            cornerRadius = CornerRadius(borderRadiusPx),
-            topLeft = Offset(borderWidth / 2, borderWidth / 2),
-            size = Size(size.width - borderWidth, size.height - borderWidth),
-            style = Stroke(borderWidth),
-            alpha = selectionAlpha(),
+            brush = SolidColor(selectionColor),
+            cornerRadius = CornerRadius(
+                if (shapeMode == 4) size.minDimension / 2f else borderRadiusPx
+            ),
+            topLeft = topLeft,
+            size = sz,
+            style = Stroke(borderWidthPx),
+            alpha = alpha,
         )
     }
 }

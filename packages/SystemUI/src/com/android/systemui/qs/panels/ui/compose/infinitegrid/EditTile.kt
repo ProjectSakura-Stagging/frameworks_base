@@ -1015,6 +1015,7 @@ private fun LazyGridItemScope.TileGridCell(
             }
         },
         contentDescription = decorationClickLabel,
+        iconOnly = cell.isIcon
     ) {
         // Rapidly composing elements with the draggable modifier can cause visual jank. This
         // usually happens when resizing a tile multiple times. We can fix this by applying the
@@ -1373,8 +1374,9 @@ private fun Modifier.tileBackground(
         3 -> 0.dp
         else -> cornerRadius
     }
+    val shape = if (shapeMode == 4) RoundedCornerShape(50) else RoundedCornerShape(radius)
     // Clip tile contents from overflowing past the tile
-    return clip(RoundedCornerShape(radius)).drawBehind { drawRect(color(), alpha = alpha()) }
+    return clip(shape).drawBehind { drawRect(color(), alpha = alpha()) }
 }
 
 private fun Modifier.keyboardShortcuts(

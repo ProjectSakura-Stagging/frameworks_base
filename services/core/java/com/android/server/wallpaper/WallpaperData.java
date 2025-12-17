@@ -26,6 +26,7 @@ import static com.android.server.wallpaper.WallpaperUtils.WALLPAPER_LOCK_ORIG;
 import static com.android.server.wallpaper.WallpaperUtils.getWallpaperDir;
 
 import android.annotation.NonNull;
+import android.annotation.Nullable;
 import android.app.IWallpaperManagerCallback;
 import android.app.WallpaperColors;
 import android.app.WallpaperManager.ScreenOrientation;
@@ -248,13 +249,8 @@ class WallpaperData {
         return result;
     }
 
-    @NonNull
+    @Nullable
     ComponentName getComponent() {
-        if (mDescription.getComponent() == null) {
-            // This should be impossible since all methods of setting the component enforce
-            // non-nullity, but this gets rid of a linter error.
-            throw new IllegalStateException("WallpaperDescription component must not be null");
-        }
         return mDescription.getComponent();
     }
 

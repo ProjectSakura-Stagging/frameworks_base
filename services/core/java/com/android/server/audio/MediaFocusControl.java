@@ -643,7 +643,7 @@ public class MediaFocusControl implements PlayerFocusEnforcer {
                 }
             } else {
                 for (FocusRequester multifr : mMultiAudioFocusList) {
-                    if (isLockedFocusOwner(multifr)) {
+                    if (isLockedFocusOwner(multifr) || mFocusStack.empty()) {
                         multifr.handleFocusGain(AudioManager.AUDIOFOCUS_GAIN);
                     }
                 }
@@ -1417,6 +1417,9 @@ public class MediaFocusControl implements PlayerFocusEnforcer {
             @NonNull String callingPackageName,
             int flags, int sdk, boolean forceDuck, int testUid,
             boolean isForCall) {
+        if (mMultiAudioFocusEnabled) {
+            return AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
+        }
         // Call focus should always be treated as having focus lock (it should already be set
         // directly, but just in case)
         if (isForCall) {

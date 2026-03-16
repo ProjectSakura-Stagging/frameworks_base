@@ -55,4 +55,8 @@
     <dimen name="weather_dream_complication_text_descent_extra_padding">1.0dip</dimen>
     <dimen name="weather_dream_overlay_complication_line_height">52.0dip</dimen>
     <dimen name="weather_dream_overlay_complication_text_size">45.0dip</dimen>
+<dimen name="air_quality_chip_corner_radius">7.0dip</dimen>
+<dimen name="background_bottom_padding">14.0dip</dimen>
+<dimen name="background_top_padding">10.0dip</dimen>
+<dimen name="bg_non_remoteviews_card_padding_horizontal">16.0dip</dimen>
 </resources>
